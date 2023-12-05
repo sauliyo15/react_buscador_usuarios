@@ -12,7 +12,7 @@ function App() {
   }
 
   return (
-    <div className="App">
+    <div id='main'>
       <Header/>
       <h2 id='buscador'>Buscador de usuarios</h2>
       <input type='text' id='query' value={query} onChange={e=>setQuery(e.target.value)} placeholder='Texto a buscar'/>
