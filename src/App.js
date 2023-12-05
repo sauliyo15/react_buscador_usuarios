@@ -1,23 +1,22 @@
-import logo from './logo.svg';
+import { useState } from 'react';
 import './App.css';
 
+import Header from './Header';
+
 function App() {
+
+  const [query, setQuery] = useState("");
+
+  const callServer = () => {
+    console.log("CLICK BUTTON");
+  }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Header/>
+      <h2 id='buscador'>Buscador de usuarios</h2>
+      <input type='text' id='query' value={query} onChange={e=>setQuery(e.target.value)} placeholder='Texto a buscar'/>
+      <button id='botonSearch' onClick={()=>callServer()}>Buscar</button>
     </div>
   );
 }
