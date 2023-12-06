@@ -10,6 +10,7 @@ function App() {
 
   const [query, setQuery] = useState("");
   const [resultado, setResultado] = useState(null);
+  const [error, setError] = useState(null);
 
 
   const callServer = async (param) => {
@@ -29,6 +30,7 @@ function App() {
         
       } catch (error) {
         console.log(error);
+        setError({description: error.message});
       }
     }
     else {
@@ -46,6 +48,8 @@ function App() {
       
       <button id='botonSearch' onClick={()=>callServer()}>Buscar</button>
       <button id='botonall' onClick={()=>callServer("all")}>Buscar Todos</button>
+
+      {error && <h1>Ha habido un error: {error.description}</h1>}
 
       {resultado && <Resultados resultado={resultado}/>}
 
