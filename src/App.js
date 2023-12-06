@@ -4,15 +4,24 @@ import './App.css';
 import Header from './Header';
 import Resultados from './Resultados';
 import {mock1} from './constants/users.js';
+import CONFIG from './config/config.js';
 
 function App() {
 
   const [query, setQuery] = useState("");
   const [resultado, setResultado] = useState(null);
 
-  const callServer = () => {
-    console.log("CLICK BUTTON");
-    setResultado(mock1.users);
+
+  const callServer = async () => {
+    
+    if (CONFIG.use_server) {
+      const response = await fetch(CONFIG.server_url);
+      const data = await response.json();
+      setResultado(data.users);
+    }
+    else {
+      setResultado(mock1.users);
+    }
   }
 
   return (
