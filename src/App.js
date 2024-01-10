@@ -1,74 +1,99 @@
-import { useState, useContext } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
-
 import Header from "./Header";
-//import Formulario from "./Formulario.js";
-import Resultados from "./Resultados";
-import { mock1 } from "./constants/users.js";
 import CONFIG from "./config/config.js";
-import { LenguajeContext } from "./LenguajeProvider.js";
+import "bootstrap/dist/css/bootstrap.min.css";
+import Pagina from "./Pagina.js";
+import NotFound from "./NotFound.js";
+import Usuario from "./Usuario.js";
+import { Route, Routes } from "react-router-dom";
 
 function App() {
-  const [query, setQuery] = useState("");
-  const [resultado, setResultado] = useState(null);
+  const [datos, setDatos] = useState(null);
+  const [resultados, setResultados] = useState(null);
   const [error, setError] = useState(null);
+  const [skip, setSkip] = useState(0);
+  const [hayMas, setHayMas] = useState(true);
+  const [cargando, setCargando] = useState(true);
+  const [busqueda, setBusqueda] = useState("");
 
-  const lenguajeContexto = useContext(LenguajeContext);
-
-  const callServer = async (param) => {
-
-    if (CONFIG.use_server) {
+  useEffect(() => {
+    const fetchData = async () => {
+      setCargando(true);
       try {
-        let queryparams;
-        
-        if (param === "all") {
-          queryparams = "?limit=" + CONFIG.num_items;
-        } 
-        else {
-          queryparams = "/search?q=" + query;
-        }
+        let queryparams = `?limit=${CONFIG.num_items}&skip=${skip}`;
 
         const response = await fetch(CONFIG.server_url + queryparams);
         const data = await response.json();
-        
-        setResultado(data.users);
-        setError(null);
 
+        if (datos === null) {
+          setDatos(data.users);
+          setResultados(data.users);
+        } else {
+          setDatos([...datos, ...data.users]);
+          setResultados([...datos, ...data.users]);
+        }
+
+        if (data.users.length === 0) {
+          setHayMas(false);
+        }
+        setCargando(false);
       } catch (error) {
-        console.log(error);
+        console.error(error);
         setError({ description: error.message });
       }
-    } else {
-      setResultado(mock1.users);
-      setError(null);
-    }
+    };
+
+    fetchData();
+  }, [skip]);
+
+  const cargarMas = () => {
+    setBusqueda("");
+    setSkip((prevSkip) => prevSkip + CONFIG.num_items);
   };
 
-  function cambiarIdioma(nuevoIdioma) {
-    lenguajeContexto.switchLenguaje(nuevoIdioma);
-  }
-
+  const buscar = (texto) => {
+    setBusqueda(texto);
+    setResultados(
+      datos.filter((objeto) =>
+        `${objeto.firstName.toLowerCase()}${objeto.lastName.toLowerCase()}`.includes(
+          texto.toLowerCase()
+        )
+      )
+    );
+  };
 
   return (
     <div id="main">
-      <Header />
-      <h2 id="buscador">Buscador de usuarios</h2>
-
-      <a href="#" onClick={() => cambiarIdioma('en')}>en</a>/<a href="#" onClick={() => cambiarIdioma('es')}>es</a>
-      
-      <div>
-        <input type="text" id="query" placeholder="Texto a buscar" value={query} onChange={e=>setQuery(e.target.value)}></input>
-      </div>
-			<br/>
-      
-      <button id="botonsearch" className="new" onClick={()=>callServer()}>{lenguajeContexto.strings.search}</button>
-      
-      <button id="botonall" className="new" onClick={()=>callServer("all")}>{lenguajeContexto.strings.seeall}</button>        		
-      
-      {error && <h1>Ha habido un error: {error.description}</h1>}
-      
-      {resultado && (<Resultados numitems={CONFIG.num_items} resultado={resultado} />)}
-      
+      <Header texto="Buscador de usuarios" />
+      <br />
+      {error ? (
+        <h1>Ha habido un error: {error.description}</h1>
+      ) : (
+        <div>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <Pagina
+                  busqueda={busqueda}
+                  buscar={buscar}
+                  resultados={resultados}
+                  hayMas={hayMas}
+                  cargarMas={cargarMas}
+                  cargando={cargando}
+                />
+              }
+            />
+            <Route
+              path="/users/:userId"
+              element={<Usuario resultados={resultados} />}
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      )}
+      <br />
     </div>
   );
 }
